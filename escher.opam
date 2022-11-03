@@ -1,0 +1,25 @@
+opam-version: "2.0"
+synopsis: "Genericity from type descriptions"
+description: """
+This library provides a GADT to describe other types to the point that it
+can be used to implement generic algorithms over their values.  Sevaral
+algorithms including equaly and pretty-printing are included.
+"""
+maintainer: ["Petter A. Urkedal <paurkedal@gmail.com>"]
+authors: ["Petter A. Urkedal <paurkedal@gmail.com>"]
+license: "LGPL-3.0-or-later WITH LGPL-3.0-linking-exception"
+homepage: "https://github.com/paurkedal/escher"
+#doc: ""
+bug-reports: "https://github.com/paurkedal/escher/issues"
+depends: [
+  "dune" {>= "3.4"}
+  "fmt"
+  "ocaml" {>= "4.08"}
+  "odoc" {with-doc}
+]
+build: [
+  ["dune" "subst"] {dev}
+  ["dune" "build" "-p" name "-j" jobs "@install"
+   "@runtest" {with-test} "@doc" {with-doc}]
+]
+dev-repo: "git+https://github.com/paurkedal/escher.git"

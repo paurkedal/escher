@@ -1,0 +1,3 @@
+(test
+ (name main)
+ (libraries alcotest escher escher.v1 fmt))

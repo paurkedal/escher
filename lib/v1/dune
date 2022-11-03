@@ -1,0 +1,3 @@
+(library
+ (name escher_v1)
+ (public_name escher.v1))
