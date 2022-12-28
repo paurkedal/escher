@@ -22,7 +22,7 @@ type (_, _) tag =
   | Label : string -> (string, 'a) tag
   | Annot : ('l, 'a) tag * 'a -> ('l, 'a) tag
 
-type ('p, 'a) annot = ..
+type ('p, 'a) name = ..
 type field_annot = ..
 type field_tag = (string, field_annot) tag
 type constructor_annot = ..
@@ -50,12 +50,14 @@ type _ atom =
 type (_, _) t =
   | Param : ('p, 'a) param -> ('p, 'a) t
   | App : ('a -> 'p, 'b) t * ('p, 'a) t -> ('p, 'b) t
-  | Fix : ('a -> 'p, 'a) t -> ('p, 'a) t
   | Atom : 'a atom -> ('p, 'a) t
-  | Tuple : 'i * (unit, 'p, 'a, 'i) product -> ('p, 'a) t
-  | Record : 'i * (field_tag, 'p, 'a, 'i) product -> ('p, 'a) t
-  | Variant : 'e * (constructor_tag, 'p, 'a, 'e) sum -> ('p, 'a) t
-  | Annot : ('p, 'a) annot * ('p, 'a) t -> ('p, 'a) t
+  | Nominal : ('p, 'a) name * ('p, 'a) descr -> ('p, 'a) t
+
+and (_, _) descr =
+  | Fix : ('a -> 'p, 'a) descr -> ('p, 'a) descr
+  | Tuple : 'i * (unit, 'p, 'a, 'i) product -> ('p, 'a) descr
+  | Record : 'i * (field_tag, 'p, 'a, 'i) product -> ('p, 'a) descr
+  | Variant : 'e * (constructor_tag, 'p, 'a, 'e) sum -> ('p, 'a) descr
 
 and (_, _, _, _) product =
   | (::) :
@@ -85,18 +87,18 @@ val int32 : ('p, int32) t
 val int64 : ('p, int64) t
 val nativeint : ('p, nativeint) t
 
-type (_, _) annot +=
-  | Is_unit : ('p, unit) annot
-  | Is_t2 : ('a1 -> 'a2 -> 'p, 'a1 * 'a2) annot
-  | Is_t3 : ('a1 -> 'a2 -> 'a3 -> 'p, 'a1 * 'a2 * 'a3) annot
-  | Is_t4 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'p, 'a1 * 'a2 * 'a3 * 'a4) annot
-  | Is_t5 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'p,
-             'a1 * 'a2 * 'a3 * 'a4 * 'a5) annot
-  | Is_t6 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'a6 -> 'p,
-             'a1 * 'a2 * 'a3 * 'a4 * 'a5 * 'a6) annot
-  | Is_option : ('a -> 'p, 'a option) annot
-  | Is_result : ('a -> 'b -> 'p, ('a, 'b) result) annot
-  | Is_list : ('a -> 'p, 'a list) annot
+type (_, _) name +=
+  | Unit : ('p, unit) name
+  | T2 : ('a1 -> 'a2 -> 'p, 'a1 * 'a2) name
+  | T3 : ('a1 -> 'a2 -> 'a3 -> 'p, 'a1 * 'a2 * 'a3) name
+  | T4 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'p, 'a1 * 'a2 * 'a3 * 'a4) name
+  | T5 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'p,
+          'a1 * 'a2 * 'a3 * 'a4 * 'a5) name
+  | T6 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'a6 -> 'p,
+          'a1 * 'a2 * 'a3 * 'a4 * 'a5 * 'a6) name
+  | Option : ('a -> 'p, 'a option) name
+  | Result : ('a -> 'b -> 'p, ('a, 'b) result) name
+  | List : ('a -> 'p, 'a list) name
 
 val unit : ('p, unit) t
 val t2 : ('a1 -> 'a2 -> 'p, 'a1 * 'a2) t

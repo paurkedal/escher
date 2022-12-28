@@ -130,12 +130,15 @@ let rec equal : type p a. (p, a) Type.t -> p E_equal.t -> a -> a -> bool =
    | App (t, u) ->
       let equal_t, equal_u = equal t, equal u in
       fun env -> equal_t (equal_u env :: env)
-   | Fix t -> E_equal.fix (equal t)
    | Atom t -> fun _ -> equal_atom t
+   | Nominal (_, t) -> equal_descr t
+
+and equal_descr : type p a. (p, a) Type.descr -> p E_equal.t -> a -> a -> bool =
+  function
+   | Fix t -> E_equal.fix (equal_descr t)
    | Tuple (_, prod) -> equal_product prod
    | Record (_, prod) -> equal_product prod
    | Variant (elim, sum) -> equal_sum sum elim
-   | Annot (_, t) -> equal t
 
 and equal_product
   : type tag a p i.
@@ -175,12 +178,16 @@ let rec compare
    | App (t, u) ->
       let compare_t, compare_u = compare t, compare u in
       fun env -> compare_t (compare_u env :: env)
-   | Fix t -> E_compare.fix (compare t)
    | Atom t -> fun _ -> compare_atom t
+   | Nominal (_, t) -> compare_descr t
+
+and compare_descr
+  : type a p. (p, a) Type.descr -> p E_compare.t -> a -> a -> int =
+  function
+   | Fix t -> E_compare.fix (compare_descr t)
    | Tuple (_, prod) -> compare_product prod
    | Record (_, prod) -> compare_product prod
    | Variant (elim, sum) -> compare_sum sum elim
-   | Annot (_, t) -> compare t
 
 and compare_product
   : type tag a p i.
@@ -212,8 +219,13 @@ let rec iter
    | App (t, u) ->
       let iter_t, iter_u = iter t, iter u in
       fun env -> iter_t (iter_u env :: env)
-   | Fix t -> E_iter.fix (iter t)
    | Atom _ -> fun _ _ -> ()
+   | Nominal (_, t) -> iter_descr t
+
+and iter_descr
+  : type a p. (p, a) Type.descr -> p E_iter.t -> a -> unit =
+  function
+   | Fix t -> E_iter.fix (iter_descr t)
    | Tuple (_, prod) -> iter_product prod
    | Record (_, prod) -> iter_product prod
    | Variant (elim, sum) ->
@@ -221,7 +233,6 @@ let rec iter
       fun env ->
         let f = f env in
         fun x -> Unit_needle.get (f x)
-   | Annot (_, t) -> iter t
 
 and iter_product
   : type tag a p i. (tag, p, a, i) Type.product -> p E_iter.t -> a -> unit =
@@ -258,12 +269,16 @@ let rec fold
    | App (t, u) ->
       let fold_t, fold_u = fold t, fold u in
       fun env -> fold_t (fold_u env :: env)
-   | Fix t -> E_fold.fix (fold t)
    | Atom _ -> fun _ _ -> Fun.id
+   | Nominal (_, t) -> fold_descr t
+
+and fold_descr
+  : type a b p. (p, a) Type.descr -> (p, b) E_fold.t -> a -> b -> b =
+  function
+   | Fix t -> E_fold.fix (fold_descr t)
    | Tuple (_, prod) -> fold_product prod
    | Record (_, prod) -> fold_product prod
    | Variant (elim, sum) -> fold_sum sum elim
-   | Annot (_, t) -> fold t
 
 and fold_product
   : type tag a b p i.
@@ -316,7 +331,6 @@ let pp_atom : type a. a Type.atom -> a Fmt.t = function
 module E_pp = Environment.Make (struct type 'a t = 'a Fmt.t end)
 module Pp_needle = Make_needle (struct type t = Format.formatter -> unit end)
 
-(* FIXME: list *)
 let rec pp : type a p. (p, a) Type.t -> p E_pp.t -> a Fmt.t =
   function
    | Param param ->
@@ -325,8 +339,15 @@ let rec pp : type a p. (p, a) Type.t -> p E_pp.t -> a Fmt.t =
       let pp_u = pp u in
       let pp_t = pp t in
       fun env -> pp_t (pp_u env :: env)
-   | Fix t -> E_pp.fix (pp t)
    | Atom t -> fun _ -> pp_atom t
+   | Nominal (Type.List, _) ->
+      fun env ->
+        Fmt.(brackets (list ~sep:semi (pp (Param Z) env)))
+   | Nominal (_, t) -> pp_descr t
+
+and pp_descr : type a p. (p, a) Type.descr -> p E_pp.t -> a Fmt.t =
+  function
+   | Fix t -> E_pp.fix (pp_descr t)
    | Tuple (_, prod) ->
       let rec loop
         : type i. (_, _, a, i) Type.product -> p E_pp.t -> a Fmt.t =
@@ -366,7 +387,7 @@ let rec pp : type a p. (p, a) Type.t -> p E_pp.t -> a Fmt.t =
         function
          | [] ->
             fun elim _ -> elim
-         | (tag, Tuple (_, []), _) :: rest ->
+         | (tag, Nominal (Type.Unit, _), _) :: rest ->
             let pp_label = Fun.flip Fmt.(const string (Type.label tag)) in
             let pp_case y = Pp_needle.V (pp_label y) in
             let pp_rest = loop rest in
@@ -386,7 +407,3 @@ let rec pp : type a p. (p, a) Type.t -> p E_pp.t -> a Fmt.t =
       fun env ->
         let pp_sum = pp_sum env in
         fun ppf x -> Pp_needle.get (pp_sum x) ppf
-   | Annot (Type.Is_list, _) ->
-      fun env ->
-        Fmt.(brackets (list ~sep:semi (pp (Param Z) env)))
-   | Annot (_, t) -> pp t

@@ -22,7 +22,7 @@ type (_, _) tag =
   | Label : string -> (string, 'a) tag
   | Annot : ('l, 'a) tag * 'a -> ('l, 'a) tag
 
-type ('p, 'a) annot = ..
+type ('p, 'a) name = ..
 type field_annot = ..
 type field_tag = (string, field_annot) tag
 type constructor_annot = ..
@@ -52,12 +52,14 @@ type _ atom =
 type (_, _) t =
   | Param : ('p, 'a) param -> ('p, 'a) t
   | App : ('a -> 'p, 'b) t * ('p, 'a) t -> ('p, 'b) t
-  | Fix : ('a -> 'p, 'a) t -> ('p, 'a) t
   | Atom : 'a atom -> ('p, 'a) t
-  | Tuple : 'i * (unit, 'p, 'a, 'i) product -> ('p, 'a) t
-  | Record : 'i * (field_tag, 'p, 'a, 'i) product -> ('p, 'a) t
-  | Variant : 'e * (constructor_tag, 'p, 'a, 'e) sum -> ('p, 'a) t
-  | Annot : ('p, 'a) annot * ('p, 'a) t -> ('p, 'a) t
+  | Nominal : ('p, 'a) name * ('p, 'a) descr -> ('p, 'a) t
+
+and (_, _) descr =
+  | Fix : ('a -> 'p, 'a) descr -> ('p, 'a) descr
+  | Tuple : 'i * (unit, 'p, 'a, 'i) product -> ('p, 'a) descr
+  | Record : 'i * (field_tag, 'p, 'a, 'i) product -> ('p, 'a) descr
+  | Variant : 'e * (constructor_tag, 'p, 'a, 'e) sum -> ('p, 'a) descr
 
 and (_, _, _, _) product =
   | (::) :
@@ -87,36 +89,36 @@ let int32 = Atom Int32
 let int64 = Atom Int64
 let nativeint = Atom Nativeint
 
-type (_, _) annot +=
-  | Is_unit : ('p, unit) annot
-  | Is_t2 : ('a1 -> 'a2 -> 'p, 'a1 * 'a2) annot
-  | Is_t3 : ('a1 -> 'a2 -> 'a3 -> 'p, 'a1 * 'a2 * 'a3) annot
-  | Is_t4 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'p, 'a1 * 'a2 * 'a3 * 'a4) annot
-  | Is_t5 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'p,
-             'a1 * 'a2 * 'a3 * 'a4 * 'a5) annot
-  | Is_t6 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'a6 -> 'p,
-             'a1 * 'a2 * 'a3 * 'a4 * 'a5 * 'a6) annot
-  | Is_option : ('a -> 'p, 'a option) annot
-  | Is_result : ('a -> 'b -> 'p, ('a, 'b) result) annot
-  | Is_list : ('a -> 'p, 'a list) annot
+type (_, _) name +=
+  | Unit : ('p, unit) name
+  | T2 : ('a1 -> 'a2 -> 'p, 'a1 * 'a2) name
+  | T3 : ('a1 -> 'a2 -> 'a3 -> 'p, 'a1 * 'a2 * 'a3) name
+  | T4 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'p, 'a1 * 'a2 * 'a3 * 'a4) name
+  | T5 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'p,
+          'a1 * 'a2 * 'a3 * 'a4 * 'a5) name
+  | T6 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'a6 -> 'p,
+          'a1 * 'a2 * 'a3 * 'a4 * 'a5 * 'a6) name
+  | Option : ('a -> 'p, 'a option) name
+  | Result : ('a -> 'b -> 'p, ('a, 'b) result) name
+  | List : ('a -> 'p, 'a list) name
 
-let unit = Annot (Is_unit, Tuple ((), []))
+let unit = Nominal (Unit, Tuple ((), []))
 
 let t2 =
-  Annot (Is_t2, Tuple ((fun x1 x2 -> (x1, x2)), [
+  Nominal (T2, Tuple ((fun x1 x2 -> (x1, x2)), [
     (), Param Z, (fun (x, _) -> x);
     (), Param (S Z), (fun (_, x) -> x);
   ]))
 
 let t3 =
-  Annot (Is_t3, Tuple ((fun x1 x2 x3 -> (x1, x2, x3)), [
+  Nominal (T3, Tuple ((fun x1 x2 x3 -> (x1, x2, x3)), [
     (), Param Z, (fun (x, _, _) -> x);
     (), Param (S Z), (fun (_, x, _) -> x);
     (), Param (S (S Z)), (fun (_, _, x) -> x);
   ]))
 
 let t4 =
-  Annot (Is_t4, Tuple ((fun x1 x2 x3 x4 -> (x1, x2, x3, x4)), [
+  Nominal (T4, Tuple ((fun x1 x2 x3 x4 -> (x1, x2, x3, x4)), [
     (), Param Z, (fun (x, _, _, _) -> x);
     (), Param (S Z), (fun (_, x, _, _) -> x);
     (), Param (S (S Z)), (fun (_, _, x, _) -> x);
@@ -124,7 +126,7 @@ let t4 =
   ]))
 
 let t5 =
-  Annot (Is_t5, Tuple ((fun x1 x2 x3 x4 x5 -> (x1, x2, x3, x4, x5)), [
+  Nominal (T5, Tuple ((fun x1 x2 x3 x4 x5 -> (x1, x2, x3, x4, x5)), [
     (), Param Z, (fun (x, _, _, _, _) -> x);
     (), Param (S Z), (fun (_, x, _, _, _) -> x);
     (), Param (S (S Z)), (fun (_, _, x, _, _) -> x);
@@ -133,7 +135,7 @@ let t5 =
   ]))
 
 let t6 =
-  Annot (Is_t6, Tuple ((fun x1 x2 x3 x4 x5 x6 -> (x1, x2, x3, x4, x5, x6)), [
+  Nominal (T6, Tuple ((fun x1 x2 x3 x4 x5 x6 -> (x1, x2, x3, x4, x5, x6)), [
     (), Param Z, (fun (x, _, _, _, _, _) -> x);
     (), Param (S Z), (fun (_, x, _, _, _, _) -> x);
     (), Param (S (S Z)), (fun (_, _, x, _, _, _) -> x);
@@ -144,21 +146,21 @@ let t6 =
 
 let option =
   let elim none some = function None -> none () | Some x -> some x in
-  Annot (Is_option, Variant (elim, [
+  Nominal (Option, Variant (elim, [
     Label "None", unit, (fun () -> None);
     Label "Some", Param Z, (fun x -> Some x);
   ]))
 
 let result =
   let elim ok error = function Ok x -> ok x | Error x -> error x in
-  Annot (Is_result, Variant (elim, [
+  Nominal (Result, Variant (elim, [
     Label "Ok", Param Z, (fun x -> Ok x);
     Label "Error", Param (S Z), (fun x -> Error x);
   ]))
 
 let list =
   let elim nil cons = function [] -> nil () | x :: xs -> cons (x, xs) in
-  Annot (Is_list, Fix (Variant (elim, [
+  Nominal (List, Fix (Variant (elim, [
     Label "[]", unit, (fun () -> []);
     Label "(::)", App (App (t2, Param (S (S Z))), Param Z),
       (fun (x, xs) -> x :: xs);
