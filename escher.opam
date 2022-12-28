@@ -12,6 +12,7 @@ homepage: "https://github.com/paurkedal/escher"
 #doc: ""
 bug-reports: "https://github.com/paurkedal/escher/issues"
 depends: [
+  "alcotest" {with-test}
   "dune" {>= "3.4"}
   "fmt"
   "ocaml" {>= "4.08"}
