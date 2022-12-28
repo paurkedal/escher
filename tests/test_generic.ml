@@ -20,12 +20,12 @@ open Escher_v1
 
 let test_fold () =
   let f x acc = assert (x = acc); x + acc in
-  let z = Generic.fold Type.(App (list, Param Z)) [f] [1; 2; 4] 1 in
+  let z = Generic.fold Type.list [f] [1; 2; 4] 1 in
   Alcotest.(check int) "same" 8 z
 
 let pp_unit = Generic.pp Type.unit []
 let show_unit = Fmt.to_to_string pp_unit
-let pp_int_list = Generic.pp Type.(App (list, int)) []
+let pp_int_list = Generic.pp Type.(list $ int) []
 let show_int_list = Fmt.to_to_string pp_int_list
 
 let test_pp () =

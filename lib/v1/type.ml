@@ -79,6 +79,8 @@ type nonrec 'a list = 'a list = [] | (::) of 'a * 'a list
 
 [@@@warning "+30"]
 
+let ($) t u = App (t, u)
+
 let int = Atom Int
 let char = Atom Char
 let bytes = Atom Bytes
