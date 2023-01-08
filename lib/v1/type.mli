@@ -1,4 +1,4 @@
-(* Copyright (C) 2022  Petter A. Urkedal <paurkedal@gmail.com>
+(* Copyright (C) 2022--2023  Petter A. Urkedal <paurkedal@gmail.com>
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -101,6 +101,7 @@ type (_, _) name +=
   | Option : ('a -> 'p, 'a option) name
   | Result : ('a -> 'b -> 'p, ('a, 'b) result) name
   | List : ('a -> 'p, 'a list) name
+  | Assoc : ('a -> 'p, (string * 'a) list) name
 
 val unit : ('p, unit) t
 val t2 : ('a1 -> 'a2 -> 'p, 'a1 * 'a2) t
@@ -113,3 +114,4 @@ val t6 : ('a1 -> 'a2 -> 'a3 -> 'a4 -> 'a5 -> 'a6 -> 'p,
 val option : ('a -> 'p, 'a option) t
 val result : ('a -> 'b -> 'p, ('a, 'b) result) t
 val list : ('a -> 'p, 'a list) t
+val assoc : ('a -> 'p, (string * 'a) list) t

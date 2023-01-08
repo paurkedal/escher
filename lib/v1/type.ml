@@ -1,4 +1,4 @@
-(* Copyright (C) 2022  Petter A. Urkedal <paurkedal@gmail.com>
+(* Copyright (C) 2022--2023  Petter A. Urkedal <paurkedal@gmail.com>
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -103,6 +103,7 @@ type (_, _) name +=
   | Option : ('a -> 'p, 'a option) name
   | Result : ('a -> 'b -> 'p, ('a, 'b) result) name
   | List : ('a -> 'p, 'a list) name
+  | Assoc : ('a -> 'p, (string * 'a) list) name
 
 let unit = Nominal (Unit, Tuple ((), []))
 
@@ -165,5 +166,14 @@ let list =
   Nominal (List, Fix (Variant (elim, [
     Label "[]", unit, (fun () -> []);
     Label "(::)", App (App (t2, Param (S (S Z))), Param Z),
+      (fun (x, xs) -> x :: xs);
+  ])))
+
+let assoc =
+  let elim nil cons = function [] -> nil () | x :: xs -> cons (x, xs) in
+  Nominal (Assoc, Fix (Variant (elim, [
+    Label "[]", unit, (fun () -> []);
+    Label "(::)",
+      App (App (t2, App (App (t2, string), Param (S (S Z)))), Param Z),
       (fun (x, xs) -> x :: xs);
   ])))
