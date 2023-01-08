@@ -1,0 +1,4 @@
+(library
+ (name escher_yojson)
+ (public_name escher.yojson)
+ (libraries escher escher.v1))
