@@ -52,6 +52,7 @@ type _ atom =
 type (_, _) t =
   | Param : ('p, 'a) param -> ('p, 'a) t
   | App : ('a -> 'p, 'b) t * ('p, 'a) t -> ('p, 'b) t
+  | Iso : ('a -> 'b) * ('b -> 'a) * ('p, 'a) t -> ('p, 'b) t
   | Atom : 'a atom -> ('p, 'a) t
   | Nominal : ('p, 'a) name * ('p, 'a) descr -> ('p, 'a) t
 

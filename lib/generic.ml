@@ -1,4 +1,4 @@
-(* Copyright (C) 2022  Petter A. Urkedal <paurkedal@gmail.com>
+(* Copyright (C) 2022--2023  Petter A. Urkedal <paurkedal@gmail.com>
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -130,6 +130,10 @@ let rec equal : type p a. (p, a) Type.t -> p E_equal.t -> a -> a -> bool =
    | App (t, u) ->
       let equal_t, equal_u = equal t, equal u in
       fun env -> equal_t (equal_u env :: env)
+   | Iso (_, g, t) ->
+      fun env ->
+        let equal_t = equal t env in
+        fun x y -> equal_t (g x) (g y)
    | Atom t -> fun _ -> equal_atom t
    | Nominal (_, t) -> equal_descr t
 
@@ -178,6 +182,10 @@ let rec compare
    | App (t, u) ->
       let compare_t, compare_u = compare t, compare u in
       fun env -> compare_t (compare_u env :: env)
+   | Iso (_, g, t) ->
+      fun env ->
+        let compare_t = compare t env in
+        fun x y -> compare_t (g x) (g y)
    | Atom t -> fun _ -> compare_atom t
    | Nominal (_, t) -> compare_descr t
 
@@ -219,6 +227,10 @@ let rec iter
    | App (t, u) ->
       let iter_t, iter_u = iter t, iter u in
       fun env -> iter_t (iter_u env :: env)
+   | Iso (_, g, t) ->
+      fun env ->
+        let iter_t = iter t env in
+        fun x -> iter_t (g x)
    | Atom _ -> fun _ _ -> ()
    | Nominal (_, t) -> iter_descr t
 
@@ -269,6 +281,10 @@ let rec fold
    | App (t, u) ->
       let fold_t, fold_u = fold t, fold u in
       fun env -> fold_t (fold_u env :: env)
+   | Iso (_, g, t) ->
+      fun env ->
+        let fold_t = fold t env in
+        fun x -> fold_t (g x)
    | Atom _ -> fun _ _ -> Fun.id
    | Nominal (_, t) -> fold_descr t
 
@@ -339,6 +355,8 @@ let rec pp : type a p. (p, a) Type.t -> p E_pp.t -> a Fmt.t =
       let pp_u = pp u in
       let pp_t = pp t in
       fun env -> pp_t (pp_u env :: env)
+   | Iso (_, g, t) ->
+      fun env -> Fmt.using g (pp t env)
    | Atom t -> fun _ -> pp_atom t
    | Nominal (Type.List, _) ->
       fun env ->
