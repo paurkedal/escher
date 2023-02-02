@@ -80,6 +80,13 @@ type nonrec 'a list = 'a list = [] | (::) of 'a * 'a list
 
 [@@@warning "+30"]
 
+let p0 = Param Z
+let p1 = Param (S Z)
+let p2 = Param (S (S Z))
+let p3 = Param (S (S (S Z)))
+let p4 = Param (S (S (S (S Z))))
+let p5 = Param (S (S (S (S (S Z)))))
+
 let ($) t u = App (t, u)
 
 let int = Atom Int

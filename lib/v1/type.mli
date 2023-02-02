@@ -78,6 +78,13 @@ type nonrec 'a list = 'a list = [] | (::) of 'a * 'a list
 
 [@@@warning "+30"]
 
+val p0 : ('a -> _, 'a) t
+val p1 : (_ -> 'a -> _, 'a) t
+val p2 : (_ -> _ -> 'a -> _, 'a) t
+val p3 : (_ -> _ -> _ -> 'a -> _, 'a) t
+val p4 : (_ -> _ -> _ -> _ -> 'a -> _, 'a) t
+val p5 : (_ -> _ -> _ -> _ -> _ -> 'a -> _, 'a) t
+
 val ($) : ('a -> 'p, 'b) t -> ('p, 'a) t -> ('p, 'b) t
 
 val int : ('p, int) t
